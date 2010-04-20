@@ -113,7 +113,19 @@ public class MapBuilder
     }
 
     /**
-     * Make the Map have a default value other than undefined.
+     * Make the map compute values for missing keys with the given function.  If setDefaultValue is
+     * also used, the compute function will first create a value for a missing key, and if it
+     * returns undefined, then the default value will be used.
+     */
+    public function makeComputing (computer :Function) :MapBuilder
+    {
+        _computer = computer;
+        return this;
+    }
+
+    /**
+     * Make the Map have a default value other than undefined.  If makeComputing is also used, this
+     * will only be returned if the computing function returns undefined for a key.
      */
     public function setDefaultValue (value :*) :MapBuilder
     {
@@ -152,6 +164,11 @@ public class MapBuilder
         }
         if (_weakValues) {
             map = new WeakValueMap(map);
+        }
+        // Do Computing before DefaultValue to let the computing function try to come up with a
+        // value first
+        if (_computer !== null) {
+            map = new ValueComputingMap(map, _computer);
         }
         if (_defaultValue !== undefined) {
             map = new DefaultValueMap(map, _defaultValue);
@@ -194,5 +211,8 @@ public class MapBuilder
 
     /** Track immutability. @private */
     protected var _immutable :Boolean;
+
+    /** The function to compute missing values in the map. @private */
+    protected var _computer :Function;
 }
 }

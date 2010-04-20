@@ -32,6 +32,29 @@ import flash.geom.Rectangle;
 public class DisplayUtil
 {
     /**
+     * Removes all children from the specified DisplayObjectContainer
+     */
+    public static function removeAllChildren (parent :DisplayObjectContainer) :void
+    {
+        while (parent.numChildren > 0) {
+            // Removing nodes from the front of the child list is about twice as fast as
+            // removing them from the end.
+            parent.removeChildAt(0);
+        }
+    }
+
+    /**
+     * Detaches the specified DisplayObject from its parent DisplayObjectContainer, if it
+     * has one.
+     */
+    public static function detach (d :DisplayObject) :void
+    {
+        if (d.parent != null) {
+            d.parent.removeChild(d);
+        }
+    }
+
+    /**
      * Transforms a point from one DisplayObject's coordinate space to another's.
      */
     public static function transformPoint (p :Point, fromDisp :DisplayObject, toDisp :DisplayObject)
@@ -114,11 +137,24 @@ public class DisplayUtil
      *
      * This is nearly exactly like mx.utils.DisplayUtil.walkDisplayObjects,
      * except this method copes with security errors when examining a child.
+     *
+     * @param callbackFunction Signature:
+     * function (disp :DisplayObject) :void
+     *    or
+     * function (disp :DisplayObject) :Boolean
+     *
+     * If you return a Boolean, you may return <code>true</code> to indicate that you've
+     * found what you were looking for, and halt iteration.
+     *
+     * @return true if iteration was halted by callbackFunction returning true
      */
     public static function applyToHierarchy (
-        disp :DisplayObject, callbackFunction :Function) :void
+        disp :DisplayObject, callbackFunction :Function) :Boolean
     {
-        callbackFunction(disp);
+        // halt iteration if callbackFunction returns true
+        if (Boolean(callbackFunction(disp))) {
+            return true;
+        }
 
         if (disp is DisplayObjectContainer) {
             var container :DisplayObjectContainer = disp as DisplayObjectContainer;
@@ -131,9 +167,13 @@ public class DisplayUtil
                 }
                 // and then we apply outside of the try/catch block so that
                 // we don't hide errors thrown by the callbackFunction.
-                applyToHierarchy(disp, callbackFunction);
+                if (applyToHierarchy(disp, callbackFunction)) {
+                    return true;
+                }
             }
         }
+
+        return false;
     }
 
     /**
@@ -263,6 +303,32 @@ public class DisplayUtil
 
             return (dist1 > dist2) ? 1 : ((dist1 < dist2) ? -1 : 0); // signum
         };
+    }
+
+    /**
+     * Traverses a display hierarchy and returns the DisplayObject at the given path.
+     *
+     * @param path a String containing the dot-delimited path of the descendent to return;
+     * e.g. "child.grandchild.greatgrandchild".
+     *
+     * @param pathDelimiter the delimiter used to separate different elements of the path.
+     * Defaults to "."
+     *
+     * @return the DisplayObject at the given path, or null if the path could not be resolved
+     * to a DisplayObject
+     */
+    public static function getDescendent (
+        root :DisplayObjectContainer, path :String, pathDelimiter :String = ".") :DisplayObject
+    {
+        var desc :DisplayObject = root;
+        for each (var elem :String in path.split(pathDelimiter)) {
+            try {
+                desc = DisplayObjectContainer(desc).getChildByName(elem);
+            } catch (err :TypeError) {
+                return null;
+            }
+        }
+        return desc;
     }
 
     /**
