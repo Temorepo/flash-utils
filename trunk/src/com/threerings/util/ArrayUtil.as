@@ -41,6 +41,22 @@ public class ArrayUtil
     }
 
     /**
+     * Properly resizes an Array, truncating if it's too large, and padding it with 'undefined'
+     * if too small.
+     *
+     * An Array grown with the Array class's length setter will not actually have the
+     * number of elements that it claims to.
+     */
+    public static function resize (arr :Array, newLength :uint) :void
+    {
+        if (arr.length > newLength) {
+            arr.length = newLength;
+        } else {
+            padToLength(arr, newLength, undefined);
+        }
+    }
+
+    /**
      * Pad the array to the specified length with the value specified, returning the passed-in
      * array for convenience.
      */
@@ -60,6 +76,44 @@ public class ArrayUtil
     public static function copyOf (arr :Array) :Array
     {
         return arr.slice();
+    }
+
+    /**
+     * Find the maximum element in the array according to the specified Comparator, or
+     * according to Comparators.compareUnknowns if no Comparator is specified.
+     *
+     * @return the maximum value, or undefined if the array is empty.
+     */
+    public static function max (arr :Array, comp :Function = null) :*
+    {
+        var len :uint = arr.length;
+        if (len == 0) {
+            return undefined;
+        }
+        if (comp == null) {
+            comp = Comparators.compareUnknowns;
+        }
+        var max :* = arr[0];
+        for (var ii :uint = 1; ii < len; ii++) {
+            if (comp(max, arr[ii]) < 0) {
+                max = arr[ii];
+            }
+        }
+        return max;
+    }
+
+    /**
+     * Find the minimum element in the array according to the specified Comparator, or
+     * according to Comparators.compareUnknowns if no Comparator is specified.
+     *
+     * @return the minimum value, or undefined if the array is empty.
+     */
+    public static function min (arr :Array, comp :Function = null) :*
+    {
+        if (comp == null) {
+            comp = Comparators.compareUnknowns;
+        }
+        return max(arr, Comparators.createReverse(comp));
     }
 
     /**
@@ -349,6 +403,37 @@ public class ArrayUtil
         for (var ii :uint = 0; ii < count; ++ii) {
             dst[dstoffset++] = src[srcoffset++];
         }
+    }
+
+    /**
+     * Returns an array whose nth element is an array of the nth elements of each of the passed
+     * in arrays. Therefore, the length of the returned array will be the maximum of the lengths
+     * of the passed in arrays and will have no undefined entries. Also, the nth element of the
+     * returned array will contain undefined entries for each corresponding array whose nth
+     * element was undefined.
+     * @example
+     * <listing version="3.0">
+     *     var trans :Array = transpose([1, 2, 3], ["a", "b", "c"], ["foo", "bar", "baz"]);
+     *     trace(trans[0]); // [1, "a", "foo"]
+     *     trace(trans[1]); // [2, "b", "bar"]
+     *     trace(trans[2]); // [3, "c", "baz"]
+     * </listing>
+     */
+    public static function transpose (x :Array, y :Array, ...arrays) :Array
+    {
+        arrays.splice(0, 0, x, y);
+        var len :int = Math.max.apply(null, arrays.map(Util.adapt(function (arr :Array) :int {
+            return arr.length;
+        })));
+        var result :Array = new Array(len);
+        var tuple :Array;
+        for (var ii :int = 0; ii < len; ++ii) {
+            result[ii] = tuple = new Array(arrays.length);
+            for (var jj :int = 0; jj < arrays.length; ++jj) {
+                tuple[jj] = arrays[jj][ii]; // may be undefined, ok
+            }
+        }
+        return result;
     }
 
     /**

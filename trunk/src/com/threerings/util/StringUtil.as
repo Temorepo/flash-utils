@@ -476,8 +476,13 @@ public class StringUtil
 
             var index :int = int(result.index);
             var url :String = String(result[0]);
-            array.push(s.substring(0, index), url);
+            array.push(s.substring(0, index));
             s = s.substring(index + url.length);
+            // clean up the url if necessary
+            if (startsWith(url.toLowerCase(), "www.")) {
+                url = "http://" + url;
+            }
+            array.push(url);
         }
 
         if (s != "" || array.length == 0) { // avoid putting an empty string on the end
@@ -698,11 +703,11 @@ public class StringUtil
         "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" ];
 
     /** Decimal digits. */
-    protected static const DECIMAL :Array = [ "0", "1", "2", "3", "4",
-        "5", "6", "7", "8", "9" ];
+    protected static const DECIMAL :Array = HEX.slice(0, 10);
 
     /** A regular expression that finds URLs. */
-    protected static const URL_REGEXP :RegExp =
-        new RegExp("(http|https|ftp)://\\S+", "i");
+    protected static const URL_REGEXP :RegExp = //new RegExp("(http|https|ftp)://\\S+", "i");
+        // from John Gruber: http://daringfireball.net/2009/11/liberal_regex_for_matching_urls
+        new RegExp("\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^!\\\"#$%&'()*+,\\-./:;<=>?@\\[\\\\\\]\\^_`{|}~\\s]|/)))", "i");
 }
 }

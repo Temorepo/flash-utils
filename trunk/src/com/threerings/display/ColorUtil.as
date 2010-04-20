@@ -60,7 +60,60 @@ public class ColorUtil
         return (hue >= 0 ? hue : hue + 360);
     }
 
+    /**
+     * Returns a color's brightness value, as a percentage. 0<=Brightness<=1.
+     */
+    public static function getBrightness (color :uint) :Number
+    {
+        var r :Number = ((color >> 16) & 0xff) * INV_255;
+        var g :Number = ((color >> 8) & 0xff) * INV_255;
+        var b :Number = (color & 0xff) * INV_255;
+
+        return (r * LUMA_R) + (g * LUMA_G) + (b * LUMA_B);
+    }
+
+    /**
+     * Adjusts the brightness of the given color. 0<=brightness<=1.
+     */
+    public static function setBrightness (color :uint, brightness :Number) :uint
+    {
+        if (brightness <= 0) {
+            return 0;
+        }
+
+        var old :Number = getBrightness(color);
+        if (old <= 0) {
+            // special case: convert black to gray
+            var component :Number = 255 * brightness;
+            return composeColor(component, component, component);
+
+        } else {
+            var pct :Number = brightness / old;
+            var r :Number = ((color >> 16) & 0xff) * pct;
+            var g :Number = ((color >> 8) & 0xff) * pct;
+            var b :Number = (color & 0xff) * pct;
+            return composeColor(r, g, b);
+        }
+    }
+
+    /**
+     * Converts RGB components into a single 8 bit color value.
+     * r, g, and b must all be in [0, 255]
+     */
+    public static function composeColor (r :uint, g :uint, b :uint) :uint
+    {
+        return (Math.min(r, 255) << 16) | (Math.min(g, 255) << 8) | Math.min(b, 255);
+    }
+
     protected static const ROOT_3 :Number = Math.sqrt(3);
     protected static const R2D :Number = 180 / Math.PI; // radians to degrees
+    protected static const INV_255 :Number = 1 / 255;
+
+    // RGB to Luminance conversion constants as found on
+    // Charles A. Poynton's colorspace-faq :
+    // http://www.faqs.org/faqs/graphics/colorspace-faq/
+    protected static const LUMA_R :Number = 0.212671;
+    protected static const LUMA_G :Number = 0.71516;
+    protected static const LUMA_B :Number = 0.072169;
 }
 }

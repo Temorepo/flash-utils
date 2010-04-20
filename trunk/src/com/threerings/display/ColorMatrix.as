@@ -93,8 +93,8 @@ public class ColorMatrix
      * @param saturation an integer between -100 and 100
      * @param hue an integer between -180 and 180
      */
-    public function adjustColor (brightness :int, contrast :int, saturation :int, hue :int)
-        :ColorMatrix
+    public function adjustColor (brightness :int = 0, contrast :int = 0, saturation :int = 0,
+        hue :int = 0) :ColorMatrix
     {
         if (brightness != 0) {
             adjustBrightness(brightness, brightness, brightness);
@@ -114,6 +114,19 @@ public class ColorMatrix
         }
 
         return this;
+    }
+
+    /**
+     * Adjusts the color in HSB order.
+     *
+     * @param hue The hue adjustment between -180 and 180.
+     * @param saturation The saturation adjustment between -100 and 100.
+     * @param brightness The brightness adjustment between -100 and 100.
+     */
+    public function adjustHSB (hue :int = 0, saturation :Number = 0, brightness :int = 0)
+        :ColorMatrix
+    {
+        return adjustColor(brightness, 0, saturation, hue);
     }
 
     /**
@@ -281,8 +294,7 @@ public class ColorMatrix
         return this;
     }
 
-    public function average (r :Number = ONETHIRD, g :Number = ONETHIRD, b :Number = ONETHIRD)
-        :ColorMatrix
+    public function average (r :Number, g :Number, b :Number) :ColorMatrix
     {
         return concat([r, g, b, 0, 0,
                        r, g, b, 0, 0,
@@ -292,7 +304,7 @@ public class ColorMatrix
 
     public function makeGrayscale () :ColorMatrix
     {
-        return average();
+        return average(ONETHIRD, ONETHIRD, ONETHIRD);
     }
 
     public function threshold (threshold :Number, factor :Number = 256) :ColorMatrix

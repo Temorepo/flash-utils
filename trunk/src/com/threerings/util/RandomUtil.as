@@ -59,12 +59,12 @@ public class RandomUtil
      * Picks a random object from the supplied array of values. Even weight is given to all
      * elements of the array.
      *
-     * @return a randomly selected item or null if the array is null or of length zero.
+     * @return a randomly selected item or undefined if the array is null or of length zero.
      */
-    public static function pickRandom (values :Array, randomFn :Function = null) :Object
+    public static function pickRandom (values :Array, randomFn :Function = null) :*
     {
         if (values == null || values.length == 0) {
-            return null;
+            return undefined;
         } else {
             var rand :Number = (randomFn == null) ? Math.random() : randomFn();
             return values[Math.floor(rand * values.length)];

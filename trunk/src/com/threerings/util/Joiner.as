@@ -121,6 +121,10 @@ public class Joiner
             for each (var bit :String in describeType(obj)..variable.@name) {
                 fieldNames.push(bit);
             }
+            // get dynamic field names as well (e.g. { key1: val1, key2: val2 })
+            for (var dynamicFieldName :String in obj) {
+                fieldNames.push(dynamicFieldName);
+            }
         }
 
         var args :Array = [];

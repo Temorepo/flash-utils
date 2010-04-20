@@ -97,7 +97,7 @@ public class Util
             if (prepend.length > 0) {
                 args.unshift.apply(null, prepend);
             }
-            args.length = fn.length;
+            ArrayUtil.resize(args, fn.length);
             return fn.apply(null, args);
         };
     }
